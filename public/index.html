@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div id="login-box">
+        <div class="logo">
+            <img src="logo.png" alt="Chatter Logo" />
+        </div>
+    
+        <div class="username-group">
+            <label for="username">Name:</label>
+            <input type="text" id="username" placeholder="Username" maxlength="16" required />
+            <span id="username-error" class="error-message"></span>
+        </div>
+    
+        <label for="age">Age:</label>
+        <div class="age-input-wrapper">
+            <input type="number" id="age" placeholder="Age" min="18" max="60" required />
+            <div class="age-controls">
+                <button type="button" id="increment-btn">▲</button>
+                <button type="button" id="decrement-btn">▼</button>
+            </div>
+            <span id="age-error" class="error-message"></span>
+        </div>
+    
+        <div class="gender-group">
+            <label>Select Gender:</label>
+            <fieldset class="gender-radio">
+                <label><input type="radio" name="gender" value="male" /> Male</label>
+                <label><input type="radio" name="gender" value="female" /> Female</label>
+            </fieldset>
+            <span id="gender-error" class="error-message"></span>
+        </div>
+
+        <label for="country">Country:</label>
+        <div id="country-dropdown" class="dropdown">
+            <div class="dropdown-selected" id="selected-country">Select Country</div>
+            <div class="dropdown-list" id="country-list"></div>
+            <span id="country-error" class="error-message"></span>
+        </div>
+
+        <button onclick="signIn()">Sign In</button>
+        <script src="script.js" defer></script>
+    </div>    
+</body>
+</html>
