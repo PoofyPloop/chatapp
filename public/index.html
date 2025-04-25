@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="styling/style.css" />
 </head>
 
 <body>
@@ -34,8 +34,8 @@
         <div class="gender-group">
             <label>Select Gender:</label>
             <fieldset class="gender-radio">
-                <label><input type="radio" name="gender" value="male" /> Male</label>
-                <label><input type="radio" name="gender" value="female" /> Female</label>
+                <label><input type="radio" name="gender" value="Male" /> Male</label>
+                <label><input type="radio" name="gender" value="Female" /> Female</label>
             </fieldset>
             <span id="gender-error" class="error-message"></span>
         </div>
@@ -48,7 +48,7 @@
         </div>
 
         <button onclick="signIn()">Sign In</button>
-        <script src="script.js" defer></script>
+        <script type="module" src="script.js"></script>
     </div>    
 </body>
 </html>
