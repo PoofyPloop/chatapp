@@ -1,0 +1,199 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#login-box {
+    background: #1f1f1f;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+.gender-group label {
+    margin-top: 20px;
+}
+
+.username-group input {
+    margin-top: 20px;
+}
+
+input[type="text"],
+input[type="number"],
+.dropdown-selected {
+    width: 100%;
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: #e0e0e0;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+}
+
+input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+label {
+    font-size: 14px;
+}
+
+button {
+    background: #3498db;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+fieldset {
+    border: none;
+}
+
+.gender-radio {
+    display: flex;
+    gap: 20px;
+}
+
+.gender-radio label {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.age-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.age-input-wrapper input {
+    padding-right: 40px;
+}
+
+.age-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.age-controls button {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 0px;
+    padding-left: 2px;
+    padding-right: 1px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.age-controls button:hover {
+    background: #555;
+}
+
+#country-dropdown {
+    position: relative;
+}
+
+.dropdown-selected {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 5px;
+    display: none;
+    z-index: 10;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dropdown.open .dropdown-list {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.dropdown-item img {
+    margin-right: 10px;
+    width: 20px;
+}
+
+.dropdown-item:hover {
+    background: #3498db;
+}
+
+@media (max-width: 600px) {
+    #login-box {
+        padding: 20px;
+        width: 90%;
+    }
+
+    button,
+    input {
+        font-size: 16px;
+        padding: 14px;
+    }
+}
+
+.logo img {
+    width: 250px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 10px;
+    margin-top: 5px;
+    display: none;
+}
