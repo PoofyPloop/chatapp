@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat</title>
+    <link rel="stylesheet" href="styling/chat.css" />   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module" src="supabaseClient.js"></script>
+    <script type="module" src="chat.js"></script>
+
+    <div id="header">
+        <div class="header-content">
+            <!-- Search Bar -->
+            <div class="filter-group">
+                <label for="search">Search</label>
+                <input type="text" id="search" placeholder="Search by name or text">
+            </div>
+    
+            <!-- Age Range -->
+            <div class="filter-group">
+                <label>Age Range:</label>
+                <div class="age-range-container">
+                    <input type="range" id="min-age" min="18" max="60" value="18" class="range-input">
+                    <input type="range" id="max-age" min="18" max="60" value="60" class="range-input">
+                    <div class="slider-track"></div>
+                </div>
+                <div id="age-range-display" class="age-values">18 - 60</div>
+            </div>
+            
+            <!-- Country Filter -->
+            <div class="filter-group">
+                <label for="country">Country</label>
+                <select id="country">
+                    <option value="all">All Countries</option>
+                    <option value="us">United States</option>
+                    <option value="ca">Canada</option>
+                    <option value="gb">United Kingdom</option>
+                    <option value="de">Germany</option>
+                    <option value="fr">France</option>
+                    <option value="jp">Japan</option>
+                    <option value="in">India</option>
+                    <option value="ph">Philippines</option>
+                    <option value="br">Brazil</option>
+                    <option value="kr">South Korea</option>
+                </select>                  
+            </div>
+    
+            <!-- Filter Toggle Button for Mobile -->
+            <button id="toggleFilters" class="toggle-filters">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+        </div>
+    </div>
+    
+
+    <div id="content"></div> 
+
+    <div id="footer">
+        <!-- Messages Button (Left) -->
+        <button id="messagesButton" class="footer-button">
+            <i class="fas fa-comment-dots"></i>
+            <div class="notification" style="display: none;">1</div> <!-- Notification indicator -->
+        </button>
+    
+        <!-- Logout Button (Right) -->
+        <button id="logoutButton" class="footer-button">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+    
+    
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal">
+    <div class="modal-content">
+        <p>Are you sure you want to log out?</p>
+        <button id="confirmLogout">Yes</button>
+        <button id="cancelLogout">Cancel</button>
+    </div>
+    </div>
+</body>
+
+</html>
