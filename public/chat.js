@@ -81,11 +81,70 @@ const removeUser = async (id) => {
   }
 };
 
+// Deletes all offline users and their related data
+const deleteOfflineUsersAndData = async () => {
+  try {
+    // Fetch IDs of offline users (status with capital 'O')
+    const { data: offlineUsers, error: fetchError } = await supabase
+      .from("users")
+      .select("id")
+    .eq("status", "offline");
+
+    if (fetchError) {
+      console.error("Error fetching offline users:", fetchError.message);
+      return;
+    }
+
+    const offlineUserIds = offlineUsers.map(user => user.id);
+
+    if (offlineUserIds.length === 0) {
+      console.log("No offline users to delete.");
+      return;
+    }
+
+    // Delete messages where sender_id or receiver_id is in offlineUserIds
+    const { error: deleteMessagesError } = await supabase
+      .from("messages")
+      .delete()
+      .or(
+        offlineUserIds
+          .map(id => `sender_id.eq.${id}`)
+          .concat(offlineUserIds.map(id => `receiver_id.eq.${id}`))
+          .join(",")
+      );
+
+    if (deleteMessagesError) {
+      console.error("Error deleting messages for offline users:", deleteMessagesError.message);
+      return;
+    }
+
+    // Delete offline users
+    const { error: deleteUsersError } = await supabase
+      .from("users")
+      .delete()
+      .in("id", offlineUserIds);
+
+    if (deleteUsersError) {
+      console.error("Error deleting offline users:", deleteUsersError.message);
+      return;
+    }
+
+    console.log(`Deleted ${offlineUserIds.length} offline users and their related data.`);
+  } catch (err) {
+    console.error("Unexpected error deleting offline users and data:", err);
+  }
+};
+
+// Automatically run deleteOfflineUsersAndData every 5 minutes (300000 ms)
+setInterval(() => {
+  deleteOfflineUsersAndData();
+}, 300000);
+
 // Fetches all online users from the Supabase database
 async function fetchUsers() {
   const { data, error } = await supabase
     .from("users")
-    .select("*")
+    .select("id, username, age, gender, country")
     .eq("status", "online");
 
   if (error) {
@@ -101,7 +160,7 @@ function displayUsers(users) {
   const contentDiv = document.getElementById("content");
   contentDiv.innerHTML = ""; // Clear existing users
 
-  users.forEach((user) => {
+  for (const user of users) {
     const userDiv = document.createElement("div");
     userDiv.className = "user-entry";
 
@@ -128,6 +187,7 @@ function displayUsers(users) {
 
     // Add click event to open direct message page
     infoDiv.addEventListener("click", () => {
+      console.log("currentUserId:", currentUserId, "user.id:", user.id);
       if (currentUserId && user.id && user.id !== currentUserId) {
         window.location.href = `message.html?myId=${currentUserId}&otherId=${user.id}`;
       } else {
@@ -156,7 +216,7 @@ function displayUsers(users) {
     infoDiv.appendChild(flagImg);
     userDiv.appendChild(infoDiv);
     contentDiv.appendChild(userDiv);
-  });
+  }
 }
 
 
@@ -227,24 +287,197 @@ confirmLogout.addEventListener("click", async () => {
   window.location.href = "index.html"; 
 });
 
+// Inactivity logout after 15 minutes (900000 ms)
+let inactivityTimer;
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(async () => {
+    const username = localStorage.getItem("username");
+    if (username) {
+      // Update the user's status to 'offline' in Supabase on inactivity
+      const { error } = await supabase
+        .from("users")
+        .update({ status: "offline" })  // Set the user status as offline
+        .eq("username", username);
+
+      if (error) {
+        console.error("Error updating user status on inactivity:", error.message);
+      } else {
+        console.log("User status updated to offline due to inactivity");
+      }
+
+      // Clear localStorage and redirect to login
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    }
+  }, 900000); // 15 minutes
+}
+
+// Reset inactivity timer on user interactions
+["click", "mousemove", "keydown", "scroll", "touchstart"].forEach((event) => {
+  window.addEventListener(event, resetInactivityTimer);
+});
+
+// Start the inactivity timer initially
+resetInactivityTimer();
+
 
 // Cancel logout action
 cancelLogout.addEventListener("click", () => {
   logoutModal.style.display = "none"; // Close modal
 });
 
-// Example of showing a notification on messages button (e.g., new messages)
-function showNotification(hasNewMessages) {
-  if (hasNewMessages) {
-    const notification = document.createElement("div");
-    notification.className = "notification";
-    notification.textContent = "1"; // Example: Shows "1" as the notification count
-    messagesButton.appendChild(notification);
+let messageNotifications = {}; // { userId: { username, count } }
+let notificationDropdown = null;
+
+// Show or update the notification badge on messagesButton
+function updateNotificationBadge() {
+  const totalCount = Object.values(messageNotifications).reduce((sum, n) => sum + n.count, 0);
+  let badge = messagesButton.querySelector(".notification");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.className = "notification";
+    messagesButton.appendChild(badge);
+  }
+  if (totalCount > 0) {
+    badge.style.display = "block";
+    badge.textContent = totalCount;
+  } else {
+    badge.style.display = "none";
   }
 }
 
-// Call showNotification when new messages are detected
-showNotification(true); // This should be based on your real-time logic
+async function fetchMessageNotifications() {
+  if (!currentUserId) return;
+
+  // Fetch distinct user IDs from messages where currentUserId is sender or receiver
+  const { data, error } = await supabase
+    .from("messages")
+    .select(`
+      sender_id,
+      receiver_id
+    `)
+    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`);
+
+  if (error) {
+    console.error("Error fetching messages for notifications:", error.message);
+    return;
+  }
+
+  // Collect distinct user IDs interacted with
+  const userIdsSet = new Set();
+  data.forEach(msg => {
+    if (msg.sender_id === currentUserId) {
+      userIdsSet.add(msg.receiver_id);
+    } else {
+      userIdsSet.add(msg.sender_id);
+    }
+  });
+
+  const userIds = Array.from(userIdsSet);
+  if (userIds.length === 0) {
+    messageNotifications = {};
+    updateNotificationBadge();
+    return;
+  }
+
+  // Fetch usernames for these user IDs
+  const { data: usersData, error: usersError } = await supabase
+    .from("users")
+    .select("id, username")
+    .in("id", userIds);
+
+  if (usersError) {
+    console.error("Error fetching users for notifications:", usersError.message);
+    return;
+  }
+
+  messageNotifications = {};
+  usersData.forEach(user => {
+    messageNotifications[user.id] = { username: user.username, count: 0 };
+  });
+
+  updateNotificationBadge();
+}
+
+// Create and show the notification dropdown listing users with notifications
+function toggleNotificationDropdown() {
+  if (notificationDropdown) {
+    notificationDropdown.remove();
+    notificationDropdown = null;
+    return;
+  }
+
+  notificationDropdown = document.createElement("div");
+  notificationDropdown.className = "notification-dropdown";
+  notificationDropdown.style.position = "absolute";
+  notificationDropdown.style.bottom = "50px";
+  notificationDropdown.style.left = "10px";
+  notificationDropdown.style.backgroundColor = "#fff";
+  notificationDropdown.style.border = "1px solid #ccc";
+  notificationDropdown.style.borderRadius = "5px";
+  notificationDropdown.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+  notificationDropdown.style.width = "250px";
+  notificationDropdown.style.maxHeight = "300px";
+  notificationDropdown.style.overflowY = "auto";
+  notificationDropdown.style.zIndex = "1000";
+
+  if (Object.keys(messageNotifications).length === 0) {
+    const emptyMsg = document.createElement("div");
+    emptyMsg.textContent = "No new messages";
+    emptyMsg.style.padding = "10px";
+    notificationDropdown.appendChild(emptyMsg);
+  } else {
+    Object.entries(messageNotifications).forEach(([userId, { username, count }]) => {
+      const userEntry = document.createElement("div");
+      userEntry.className = "notification-user-entry";
+      userEntry.style.padding = "10px";
+      userEntry.style.cursor = "pointer";
+      userEntry.style.display = "flex";
+      userEntry.style.justifyContent = "space-between";
+      userEntry.style.alignItems = "center";
+      userEntry.style.borderBottom = "1px solid #eee";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = username;
+
+      const countSpan = document.createElement("span");
+      countSpan.textContent = count;
+      countSpan.style.backgroundColor = "#ff3b30";
+      countSpan.style.color = "#fff";
+      countSpan.style.borderRadius = "12px";
+      countSpan.style.padding = "2px 8px";
+      countSpan.style.fontSize = "12px";
+
+      userEntry.appendChild(nameSpan);
+      userEntry.appendChild(countSpan);
+
+      userEntry.addEventListener("click", () => {
+        window.location.href = `message.html?myId=${currentUserId}&otherId=${userId}`;
+        notificationDropdown.remove();
+        notificationDropdown = null;
+      });
+
+      notificationDropdown.appendChild(userEntry);
+    });
+  }
+
+  document.body.appendChild(notificationDropdown);
+}
+
+// Event listener for messagesButton click
+messagesButton.addEventListener("click", () => {
+  toggleNotificationDropdown();
+});
+
+// Initial fetch and update notifications periodically
+async function refreshNotifications() {
+  await fetchMessageNotifications();
+  setTimeout(refreshNotifications, 30000); // Refresh every 30 seconds
+}
+
+refreshNotifications();
 
 
 

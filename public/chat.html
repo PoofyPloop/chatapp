@@ -19,15 +19,15 @@
             <!-- Search Bar -->
             <div class="filter-group">
                 <label for="search">Search</label>
-                <input type="text" id="search" placeholder="Search by name or text">
+                <input type="text" id="search" placeholder="Search by name or text" autocomplete="off">
             </div>
     
             <!-- Age Range -->
             <div class="filter-group">
-                <label>Age Range:</label>
+                <label for="min-age">Age Range:</label>
                 <div class="age-range-container">
-                    <input type="range" id="min-age" min="18" max="60" value="18" class="range-input">
-                    <input type="range" id="max-age" min="18" max="60" value="60" class="range-input">
+                    <input type="range" id="min-age" min="18" max="60" value="18" class="range-input" autocomplete="off">
+                    <input type="range" id="max-age" min="18" max="60" value="60" class="range-input" autocomplete="off">
                     <div class="slider-track"></div>
                 </div>
                 <div id="age-range-display" class="age-values">18 - 60</div>
@@ -36,7 +36,7 @@
             <!-- Country Filter -->
             <div class="filter-group">
                 <label for="country">Country</label>
-                <select id="country">
+                <select id="country" autocomplete="off">
                     <option value="all">All Countries</option>
                     <option value="us">United States</option>
                     <option value="ca">Canada</option>

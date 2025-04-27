@@ -182,13 +182,18 @@ body {
 }
 
 #confirmLogout {
-    background-color: red;
+    background-color: #ff0000;
     padding: 10px 20px;
     font-size: large;
     font-weight: bold;
     color: white;
     border: none;
     border-radius: 10px;
+}
+
+#confirmLogout:hover {
+    background-color: #CC0000;
+    cursor: pointer;
 }
 
 #cancelLogout {
@@ -199,6 +204,11 @@ body {
     border: none;
     border-radius: 10px;
     color: white;
+}
+
+#cancelLogout:hover {
+    background-color: #555;
+    cursor: pointer;
 }
 
 #content {
