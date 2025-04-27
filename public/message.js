@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClientt.js';
+import { supabase } from './supabaseClient.js';
 
 // Get IDs (example: ?myId=1&otherId=2)
 const urlParams = new URLSearchParams(window.location.search);
