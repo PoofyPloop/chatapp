@@ -2,10 +2,35 @@ import { supabase } from './supabaseClient.js';
 
 console.log(supabase);
 
+let currentUserId = null;
+
 // Redirect if no username is found
 const username = localStorage.getItem("username");
 if (!username) {
   window.location.href = "index.html";
+}
+
+// Fetch current user's ID from Supabase
+async function fetchCurrentUserId() {
+  if (!username) {
+    console.error("No username found in localStorage");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", username)
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching current user ID:", error.message);
+  } else if (!data) {
+    console.error("No user found with username:", username);
+  } else {
+    currentUserId = data.id;
+  }
 }
 
 // Country name to ISO code map
@@ -23,9 +48,14 @@ const countryCodes = {
   // Add more as needed
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+async function initialize() {
+  await fetchCurrentUserId();
   setupRealtimeUserUpdates();
   fetchUsers();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initialize();
 });
 
 // Adds a user to the Supabase 'users' table
@@ -95,6 +125,15 @@ function displayUsers(users) {
 
     // Set up hover effect
     setUserHoverEffect(infoDiv, backgroundColor, borderColor, hoverBackground, hoverBorder);
+
+    // Add click event to open direct message page
+    infoDiv.addEventListener("click", () => {
+      if (currentUserId && user.id && user.id !== currentUserId) {
+        window.location.href = `message.html?myId=${currentUserId}&otherId=${user.id}`;
+      } else {
+        console.error("Cannot start chat: currentUserId or user.id is missing");
+      }
+    });
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "username";
