@@ -1,5 +1,5 @@
 // Supabase setup
-import { supabase } from './supabaseClientt.js';
+import { supabase } from './supabaseClient.js';
 
 // Ensure the script runs only after the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
