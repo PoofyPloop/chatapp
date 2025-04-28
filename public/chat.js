@@ -15,6 +15,7 @@ async function fetchCurrentUserId() {
   const username = localStorage.getItem('username');
 
   console.log("fetchCurrentUserId: username =", username);
+  console.log("localStorage contents:", JSON.stringify(localStorage));
 
   if (!username) {
     console.error("No username found in localStorage");

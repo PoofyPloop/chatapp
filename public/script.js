@@ -76,6 +76,7 @@ async function signIn() {
   clearErrors();
 
   const username = document.getElementById("username").value;
+  console.log("signIn: username =", username);
   const age = document.getElementById("age").value;
   const country = document.getElementById("selected-country").textContent;
   const gender = document.querySelector('input[name="gender"]:checked');
@@ -103,18 +104,23 @@ async function signIn() {
   }
 
   if (isValid) {
+    // Trim values before saving and upserting
+    const trimmedUsername = username.trim();
+    const trimmedCountry = country.trim();
+    const trimmedGender = gender.value.trim();
+
     // Saves user data to localStorage
-    localStorage.setItem('username', username);
+    localStorage.setItem('username', trimmedUsername);
     localStorage.setItem('age', age);
-    localStorage.setItem('country', country);
-    localStorage.setItem('gender', gender.value);
+    localStorage.setItem('country', trimmedCountry);
+    localStorage.setItem('gender', trimmedGender);
 
     // Upsert to Supabase to mark user online
     await supabase.from('users').upsert([{
-      username,
+      username: trimmedUsername,
       age: parseInt(age),
-      country,
-      gender: gender.value,
+      country: trimmedCountry,
+      gender: trimmedGender,
       status: 'online'
     }]);
 
