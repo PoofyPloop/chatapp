@@ -28,6 +28,7 @@
   padding: 20px;
   overflow-y: auto;
   height: calc(100vh - 120px); /* Adjust for header+footer height */
+  max-height: calc(100vh - 120px);
   background: #121212;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1rem;
@@ -35,7 +36,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: 80px; /* extra padding for footer */
+  padding-bottom: 30px; /* extra padding for footer */
+  box-sizing: border-box;
 }
 
 .chat-footer {

@@ -4,37 +4,24 @@ console.log(supabase);
 
 let currentUserId = null;
 
-// Redirect if no username is found
-const username = localStorage.getItem("username");
-if (!username) {
+// Redirect if no userId is found
+const userId = localStorage.getItem("userId");
+if (!userId) {
   window.location.href = "index.html";
+} else {
+  currentUserId = userId;
 }
 
-// Fetch current user's ID from Supabase
+// Fetch current user's ID from Supabase (optional, can be removed if userId is stored)
 async function fetchCurrentUserId() {
-  const username = localStorage.getItem('username');
+  // This function can be removed or modified since userId is stored in localStorage
+  // Keeping for backward compatibility or future use
+  let storedUserId = localStorage.getItem('userId');
 
-  console.log("fetchCurrentUserId: username =", username);
-  console.log("localStorage contents:", JSON.stringify(localStorage));
-
-  if (!username) {
-    console.error("No username found in localStorage");
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from("users")
-    .select("id")
-    .eq("username", username) 
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error fetching current user ID:", error.message);
-  } else if (!data) {
-    console.error("No user found with username:", username);
+  if (storedUserId) {
+    currentUserId = storedUserId;
   } else {
-    currentUserId = data.id;
+    console.error("No userId found in localStorage");
   }
 }
 
@@ -351,37 +338,33 @@ function updateNotificationBadge() {
     badge.textContent = totalCount;
   } else {
     badge.style.display = "none";
+    badge.textContent = "";
   }
 }
 
 async function fetchMessageNotifications() {
   if (!currentUserId) return;
 
-  // Fetch distinct user IDs from messages where currentUserId is sender or receiver
+  // Fetch messages where currentUserId is the receiver
   const { data, error } = await supabase
     .from("messages")
-    .select(`
-      sender_id,
-      receiver_id
-    `)
-    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`);
+    .select("sender_id, receiver_id")
+    .eq("receiver_id", currentUserId);
 
   if (error) {
     console.error("Error fetching messages for notifications:", error.message);
     return;
   }
 
-  // Collect distinct user IDs interacted with
-  const userIdsSet = new Set();
+  // Count messages per sender
+  const counts = {};
   data.forEach(msg => {
-    if (msg.sender_id === currentUserId) {
-      userIdsSet.add(msg.receiver_id);
-    } else {
-      userIdsSet.add(msg.sender_id);
+    if (msg.sender_id) {
+      counts[msg.sender_id] = (counts[msg.sender_id] || 0) + 1;
     }
   });
 
-  const userIds = Array.from(userIdsSet);
+  const userIds = Object.keys(counts);
   if (userIds.length === 0) {
     messageNotifications = {};
     updateNotificationBadge();
@@ -401,7 +384,7 @@ async function fetchMessageNotifications() {
 
   messageNotifications = {};
   usersData.forEach(user => {
-    messageNotifications[user.id] = { username: user.username, count: 0 };
+    messageNotifications[user.id] = { username: user.username, count: counts[user.id] || 0 };
   });
 
   updateNotificationBadge();

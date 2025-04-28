@@ -109,20 +109,32 @@ async function signIn() {
     const trimmedCountry = country.trim();
     const trimmedGender = gender.value.trim();
 
-    // Saves user data to localStorage
+    // Upsert to Supabase to mark user online and get the user's id
+    const { data, error } = await supabase
+      .from('users')
+      .upsert([{
+        username: trimmedUsername,
+        age: parseInt(age),
+        country: trimmedCountry,
+        gender: trimmedGender,
+        status: 'online'
+      }])
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Error upserting user:', error.message);
+      return;
+    }
+
+    const userId = data.id;
+
+    // Saves user data and userId to localStorage
+    localStorage.setItem('userId', userId);
     localStorage.setItem('username', trimmedUsername);
     localStorage.setItem('age', age);
     localStorage.setItem('country', trimmedCountry);
     localStorage.setItem('gender', trimmedGender);
-
-    // Upsert to Supabase to mark user online
-    await supabase.from('users').upsert([{
-      username: trimmedUsername,
-      age: parseInt(age),
-      country: trimmedCountry,
-      gender: trimmedGender,
-      status: 'online'
-    }]);
 
     // Redirect to chat.html
     window.location.href = 'chat.html';
