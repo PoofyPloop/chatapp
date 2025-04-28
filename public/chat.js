@@ -14,6 +14,8 @@ if (!username) {
 async function fetchCurrentUserId() {
   const username = localStorage.getItem('username');
 
+  console.log("fetchCurrentUserId: username =", username);
+
   if (!username) {
     console.error("No username found in localStorage");
     return;
@@ -24,7 +26,7 @@ async function fetchCurrentUserId() {
     .select("id")
     .eq("username", username) 
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching current user ID:", error.message);
