@@ -12,6 +12,8 @@ if (!username) {
 
 // Fetch current user's ID from Supabase
 async function fetchCurrentUserId() {
+  const username = localStorage.getItem('username');
+
   if (!username) {
     console.error("No username found in localStorage");
     return;
@@ -20,7 +22,7 @@ async function fetchCurrentUserId() {
   const { data, error } = await supabase
     .from("users")
     .select("id")
-    .eq("username", username)
+    .eq("username", username) 
     .limit(1)
     .single();
 
@@ -32,6 +34,7 @@ async function fetchCurrentUserId() {
     currentUserId = data.id;
   }
 }
+
 
 // Country name to ISO code map
 const countryCodes = {
