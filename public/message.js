@@ -9,6 +9,9 @@ const otherUserId = urlParams.get('otherId');
 async function updateChatUserInfo() {
   if (!otherUserId) return;
 
+  // Set current open chat user ID in localStorage
+  localStorage.setItem('currentOpenChatUserId', otherUserId);
+
   const { data, error } = await supabase
     .from('users')
     .select('username, age')
@@ -50,28 +53,29 @@ function setupRealtimeMessages() {
   if (!myUserId || !otherUserId) return;
 
   supabase
-    .channel('public:messages')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `or(sender_id.eq.${myUserId},receiver_id.eq.${myUserId})`
-      },
-      (payload) => {
-        console.log('Real-time message event received:', payload);
-        const msg = payload.new;
-        if (
-          (msg.sender_id === myUserId && msg.receiver_id === otherUserId) ||
-          (msg.sender_id === otherUserId && msg.receiver_id === myUserId)
-        ) {
-          const isMine = msg.sender_id === myUserId;
-          displayMessage(msg.message, isMine);
-        }
+  .channel('public:messages')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      // ❌ no filter here
+    },
+    (payload) => {
+      console.log('Real-time message event received:', payload);
+      const msg = payload.new;
+      if (
+        (msg.sender_id === myUserId && msg.receiver_id === otherUserId) ||
+        (msg.sender_id === otherUserId && msg.receiver_id === myUserId)
+      ) {
+        const isMine = msg.sender_id === myUserId;
+        displayMessage(msg.message, isMine);
       }
-    )
-    .subscribe();
+    }
+  )
+  .subscribe();
+
 }
 
 updateChatUserInfo();

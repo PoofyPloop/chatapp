@@ -321,17 +321,37 @@ cancelLogout.addEventListener("click", () => {
   logoutModal.style.display = "none"; // Close modal
 });
 
+
 let messageNotifications = {}; // { userId: { username, count } }
 let notificationDropdown = null;
+
+let currentOpenChatUserId = null; // Track the currently open chat user ID
+
+// Function to set the currently open chat user ID and reset notifications for that user
+function setCurrentOpenChatUserId(userId) {
+  currentOpenChatUserId = userId;
+  if (messageNotifications[userId]) {
+    messageNotifications[userId].count = 0;
+    updateNotificationBadge();
+  }
+}
+
+// Initialize currentOpenChatUserId from localStorage on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const storedUserId = localStorage.getItem('currentOpenChatUserId');
+  if (storedUserId) {
+    setCurrentOpenChatUserId(storedUserId);
+  }
+});
 
 // Show or update the notification badge on messagesButton
 function updateNotificationBadge() {
   const totalCount = Object.values(messageNotifications).reduce((sum, n) => sum + n.count, 0);
   let badge = messagesButton.querySelector(".notification");
+  // Use existing badge div from HTML, do not create new one
   if (!badge) {
-    badge = document.createElement("div");
-    badge.className = "notification";
-    messagesButton.appendChild(badge);
+    console.error("Notification badge element not found in messagesButton");
+    return;
   }
   if (totalCount > 0) {
     badge.style.display = "block";
@@ -356,10 +376,10 @@ async function fetchMessageNotifications() {
     return;
   }
 
-  // Count messages per sender
+  // Count messages per sender, excluding the currently open chat user
   const counts = {};
   data.forEach(msg => {
-    if (msg.sender_id) {
+    if (msg.sender_id && msg.sender_id !== currentOpenChatUserId) {
       counts[msg.sender_id] = (counts[msg.sender_id] || 0) + 1;
     }
   });
@@ -390,8 +410,61 @@ async function fetchMessageNotifications() {
   updateNotificationBadge();
 }
 
-// Create and show the notification dropdown listing users with notifications
-function toggleNotificationDropdown() {
+// Helper function to fetch chat users (users who have messaged or been messaged by currentUserId)
+async function fetchChatUsers() {
+  if (!currentUserId) return [];
+
+  // Fetch distinct user IDs from messages where currentUserId is sender or receiver
+  const { data: senderData, error: senderError } = await supabase
+    .from('messages')
+    .select('receiver_id')
+    .eq('sender_id', currentUserId);
+
+  if (senderError) {
+    console.error('Error fetching chat users (sender):', senderError.message);
+    return [];
+  }
+
+  const { data: receiverData, error: receiverError } = await supabase
+    .from('messages')
+    .select('sender_id')
+    .eq('receiver_id', currentUserId);
+
+  if (receiverError) {
+    console.error('Error fetching chat users (receiver):', receiverError.message);
+    return [];
+  }
+
+  const userIdsSet = new Set();
+
+  senderData.forEach(item => {
+    if (item.receiver_id) userIdsSet.add(item.receiver_id);
+  });
+
+  receiverData.forEach(item => {
+    if (item.sender_id) userIdsSet.add(item.sender_id);
+  });
+
+  const userIds = Array.from(userIdsSet);
+
+  if (userIds.length === 0) return [];
+
+  // Fetch user info for these user IDs
+  const { data: usersData, error: usersError } = await supabase
+    .from('users')
+    .select('id, username')
+    .in('id', userIds);
+
+  if (usersError) {
+    console.error('Error fetching chat users info:', usersError.message);
+    return [];
+  }
+
+  return usersData;
+}
+
+// Create and show the notification dropdown listing all chat users with notification counts
+async function toggleNotificationDropdown() {
   if (notificationDropdown) {
     notificationDropdown.remove();
     notificationDropdown = null;
@@ -412,13 +485,17 @@ function toggleNotificationDropdown() {
   notificationDropdown.style.overflowY = "auto";
   notificationDropdown.style.zIndex = "1000";
 
-  if (Object.keys(messageNotifications).length === 0) {
+  const chatUsers = await fetchChatUsers();
+
+  if (chatUsers.length === 0) {
     const emptyMsg = document.createElement("div");
-    emptyMsg.textContent = "No new messages";
+    emptyMsg.textContent = "No chat users";
     emptyMsg.style.padding = "10px";
     notificationDropdown.appendChild(emptyMsg);
   } else {
-    Object.entries(messageNotifications).forEach(([userId, { username, count }]) => {
+    chatUsers.forEach(user => {
+      const count = messageNotifications[user.id]?.count || 0;
+
       const userEntry = document.createElement("div");
       userEntry.className = "notification-user-entry";
       userEntry.style.padding = "10px";
@@ -429,21 +506,23 @@ function toggleNotificationDropdown() {
       userEntry.style.borderBottom = "1px solid #eee";
 
       const nameSpan = document.createElement("span");
-      nameSpan.textContent = username;
-
-      const countSpan = document.createElement("span");
-      countSpan.textContent = count;
-      countSpan.style.backgroundColor = "#ff3b30";
-      countSpan.style.color = "#fff";
-      countSpan.style.borderRadius = "12px";
-      countSpan.style.padding = "2px 8px";
-      countSpan.style.fontSize = "12px";
+      nameSpan.textContent = user.username;
 
       userEntry.appendChild(nameSpan);
-      userEntry.appendChild(countSpan);
+
+      if (count > 0) {
+        const countSpan = document.createElement("span");
+        countSpan.textContent = count;
+        countSpan.style.backgroundColor = "#ff3b30";
+        countSpan.style.color = "#fff";
+        countSpan.style.borderRadius = "12px";
+        countSpan.style.padding = "2px 8px";
+        countSpan.style.fontSize = "12px";
+        userEntry.appendChild(countSpan);
+      }
 
       userEntry.addEventListener("click", () => {
-        window.location.href = `message.html?myId=${currentUserId}&otherId=${userId}`;
+        window.location.href = `message.html?myId=${currentUserId}&otherId=${user.id}`;
         notificationDropdown.remove();
         notificationDropdown = null;
       });
@@ -463,7 +542,7 @@ messagesButton.addEventListener("click", () => {
 // Initial fetch and update notifications periodically
 async function refreshNotifications() {
   await fetchMessageNotifications();
-  setTimeout(refreshNotifications, 30000); // Refresh every 30 seconds
+  setTimeout(refreshNotifications, 5000); // Refresh every 5 seconds
 }
 
 refreshNotifications();
