@@ -60,7 +60,6 @@ function setupRealtimeMessages() {
       event: 'INSERT',
       schema: 'public',
       table: 'messages',
-      // ❌ no filter here
     },
     (payload) => {
       console.log('Real-time message event received:', payload);
@@ -100,7 +99,7 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
         return;
       }
 
-      displayMessage(messageText, true);
+      // displayMessage(messageText, true); // Removed to avoid duplicate message display due to real-time subscription
       document.getElementById('chat-input').value = '';
     } catch (err) {
       console.error('Unexpected error sending message:', err);
