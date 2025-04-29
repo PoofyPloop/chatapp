@@ -25,7 +25,7 @@
 }
 
 .chat-messages {
-  padding: 20px 20px 70px 20px;
+  padding: 20px 20px 90px 20px;
   overflow-y: auto;
   height: calc(100vh - 120px - env(safe-area-inset-bottom)); /* Adjust for header+footer height and safe area */
   max-height: calc(100vh - 120px - env(safe-area-inset-bottom));
