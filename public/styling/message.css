@@ -25,10 +25,10 @@
 }
 
 .chat-messages {
-  padding: 20px;
+  padding: 20px 20px 70px 20px;
   overflow-y: auto;
-  height: calc(100vh - 120px); /* Adjust for header+footer height */
-  max-height: calc(100vh - 120px);
+  height: calc(100vh - 120px - env(safe-area-inset-bottom)); /* Adjust for header+footer height and safe area */
+  max-height: calc(100vh - 120px - env(safe-area-inset-bottom));
   background: #121212;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1rem;
@@ -36,8 +36,23 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: 30px; /* extra padding for footer */
   box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #1a252f;
+  overflow: hidden;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #1a252f;
+  overflow: auto;
 }
 
 .chat-footer {
