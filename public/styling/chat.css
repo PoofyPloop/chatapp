@@ -22,6 +22,13 @@ body {
     transition: height 0.3s ease; /* Smooth transition for mobile height */
 }
 
+@media (max-width: 768px) {
+    #header {
+        height: auto;
+        padding: 10px;
+    }
+}
+
 /* Content inside the header (filters, buttons, etc.) */
 .header-content {
     display: flex;
@@ -103,10 +110,10 @@ body {
 
 #footer {
     position: fixed;
-    bottom: 0px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 50px;
-    left: 0px;
-    right: 0px;
     overflow: hidden;
     background-color: #1F1F1F;
     display: flex;
@@ -115,6 +122,14 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
     box-sizing: content-box;
     z-index: 20;
+}
+
+@media (max-width: 768px) {
+    #footer {
+        height: 60px;
+        padding: 15px 20px;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+    }
 }
 
 /* Footer buttons */
@@ -214,17 +229,26 @@ body {
 }
 
 #content {
-    position:absolute; 
-    top:70px; 
-    left:0px; 
-    right:0px; 
-    height: auto;
-    overflow:auto;
+    position: absolute;
+    top: 60px;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    overflow: auto;
     background-color: #121212;
     display: flex;
     flex-direction: column;
-    padding: 5px 10px calc(70px + env(safe-area-inset-bottom)) 10px;
-    box-sizing: content-box;
+    padding: 5px 10px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    #content {
+        top: auto;
+        bottom: 60px;
+        padding: 10px 10px 10px 10px;
+        height: calc(100vh - 60px - 60px - env(safe-area-inset-bottom));
+    }
 }
 
 /* Individual user entry */
